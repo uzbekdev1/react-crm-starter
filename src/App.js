@@ -2,18 +2,10 @@ import React from 'react';
 import {Switch, BrowserRouter as Router, Route} from 'react-router-dom';
 import './App.css';
 
-import MainPage from './components/MainPage';
+import MainPage from './containers/Home';
+import FormPage from './containers/Form';
 
 class App extends React.Component{
-  construct(props){
-    this.state={
-      formData:{
-
-      },
-      filled:false
-    }
-  }
-
   render(){
     return (
       <Router>
@@ -27,7 +19,9 @@ class App extends React.Component{
 function MyRoute(){
   return(
     <Switch>
-      <Route path={'/'} component={MainPage} />
+      <Route exact path={'/'} component={MainPage} />
+      <Route exact path={'/form'} component={FormPage} />
+      <Route exact path={'/form/edit'} component={FormPage} />
     </Switch>
   );
 }

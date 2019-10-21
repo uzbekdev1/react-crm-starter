@@ -1,22 +1,55 @@
-.App {
-  text-align: center;
+@import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
+
+body {
+  margin: 0;
+  font-family: "Montserrat", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.App-logo {
-  height: 40vmin;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.mt-2{
+  margin-top: 1rem;
+}
+.float-right{
+  float: right;
+}
+.ml-auto{
+  margin-left: auto;
 }
 
-.App-link {
-  color: #09d3ac;
+.main-page{
+  padding: 3rem;
+}
+
+.main-page p{
+  font-weight: 600;
+}
+
+.button{
+  display: inline-block;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #13c98a;
+  line-height:1;
+  font-size: 16px;
+  border:0;
+  border-radius: 3rem;
+  color: #fff;
+  padding: 1em 3rem;
+}
+
+.button:hover{
+  background-color: #2e09b6;
+}
+
+.form-data .form-value{
+  color: #aaa;
 }
