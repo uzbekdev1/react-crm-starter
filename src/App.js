@@ -1,15 +1,17 @@
-import React from 'react';
+import React,{lazy,Suspense} from 'react';
 import {Switch, BrowserRouter as Router, Route} from 'react-router-dom';
 import './App.css';
 
-import MainPage from './containers/Home';
-import FormPage from './containers/Form';
+const MainPage=lazy(()=>import('./containers/Home'));
+const FormPage=lazy(()=>import('./containers/Form'));
 
 class App extends React.Component{
   render(){
     return (
       <Router>
-        <MyRoute />
+        <Suspense fallback={'Loading...'}>
+          <MyRoute />
+        </Suspense>
       </Router>
     );
   }
