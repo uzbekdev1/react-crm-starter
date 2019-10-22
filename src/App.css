@@ -39,11 +39,11 @@ code {
   cursor: pointer;
   background-color: #13c98a;
   line-height:1;
-  font-size: 16px;
+  font-size: 1rem;
   border:0;
   border-radius: 3rem;
   color: #fff;
-  padding: 1em 3rem;
+  padding: 1rem 3rem;
 }
 
 .button:hover{

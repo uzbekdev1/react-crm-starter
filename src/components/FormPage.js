@@ -12,7 +12,18 @@ class FormPage extends React.Component{
 				email:'',
 				message:'',
 				theme:''
-			}
+			},
+			formIsReady:false
+		}
+
+		this.setInputNameRef=(element)=>{
+			this.inputName=element;
+		}
+		this.setInputEmailRef=(element)=>{
+			this.inputEmail=element;
+		}
+		this.setInputMessageRef=(element)=>{
+			this.inputMessage=element;
 		}
 	}
 	validateField=({name,value})=>{
@@ -68,8 +79,15 @@ class FormPage extends React.Component{
 
 		this.setState({errors})
 	}
+	resetForm=()=>{
+		this.props.resetForm();
+		console.log('resetting');
+		this.inputName.value='';
+		this.inputEmail.value='';
+		this.inputMessage.value='';
+	}
 	render(){
-		const {themes,themesMenuOpened,theme,name,email,message,toggleThemesMenu,selectTheme,inputName,inputMail,inputMessage,resetForm}=this.props
+		const {themes,themesMenuOpened,theme,name,email,message,toggleThemesMenu,selectTheme,inputName,inputMail,inputMessage}=this.props
 		const {errors}=this.state;
 		console.log('form page props',this.props);
 		console.log('form page state',this.state);
@@ -79,12 +97,12 @@ class FormPage extends React.Component{
 					<div className='form-card-body'>
 						<form>
 							<h2 className='form-title'>Форма для тебя</h2>
-							<InputBox changeHandler={inputName} value={name} placeholder='Представьтесь пожалуйста' name='name' validator={this.validateField} error={errors.name} />
-							<InputBox changeHandler={inputMail} value={email} placeholder='Введите ваш e-mail' name='email' cl='mt-2' validator={this.validateField} error={errors.email}/>
+							<InputBox changeHandler={inputName} value={name} placeholder='Представьтесь пожалуйста' name='name' validator={this.validateField} error={errors.name} setRef={this.setInputNameRef}/>
+							<InputBox changeHandler={inputMail} value={email} placeholder='Введите ваш e-mail' name='email' cl='mt-2' validator={this.validateField} error={errors.email} setRef={this.setInputEmailRef} />
 							<ThemeSelectMenu themes={themes} opened={themesMenuOpened} toggle={toggleThemesMenu} select={selectTheme} theme={theme} error={errors.theme} validator={this.validateField} />
-							<Textarea changeHandler={inputMessage} value={message} validator={this.validateField} error={errors.message} />
+							<Textarea changeHandler={inputMessage} value={message} validator={this.validateField} error={errors.message} setRef={this.setInputMessageRef}/>
 							<div className='form-footer mt-2'>
-								<div className='button reset-button' onClick={resetForm}>Сбросить</div>
+								<div className='button reset-button' onClick={this.resetForm}>Сбросить</div>
 								<Link onClick={this.submit} to={'/'} className='button ml-auto'>Отправить</Link>
 							</div>
 						</form>
@@ -95,7 +113,7 @@ class FormPage extends React.Component{
 	}
 }
 
-function InputBox({changeHandler,value,placeholder,name,cl,validator,error}){
+function InputBox({changeHandler,value,placeholder,name,cl,validator,error,setRef}){
 	const blurHandler=(e)=>{
 		e.target.placeholder=placeholder;
 		changeHandler(e.target.value);
@@ -111,7 +129,7 @@ function InputBox({changeHandler,value,placeholder,name,cl,validator,error}){
 	return(
 		<div className={cl+' input-box '+(value?'filled ':'')+(error?'with-error ':'')}>
 			{label}			
-			<input name={name} type="text" placeholder={placeholder} onFocus={(e)=>{e.target.placeholder=''; console.log(e.target)}} onBlur={blurHandler} defaultValue={value}/>
+			<input ref={setRef} name={name} type="text" placeholder={placeholder} onFocus={(e)=>{e.target.placeholder=''; console.log(e.target)}} onBlur={blurHandler} defaultValue={value}/>
 		</div>
 	);
 }
@@ -174,7 +192,7 @@ function ThemeOption({theme,select}){
 	);
 }
 
-function Textarea({changeHandler,value,validator,error}){
+function Textarea({changeHandler,value,validator,error,setRef}){
 	const blurHandler=(e)=>{
 		e.target.placeholder='Введите сообщение';
 		changeHandler(e.target.value);
@@ -182,7 +200,7 @@ function Textarea({changeHandler,value,validator,error}){
 	}
 	return(
 		<div className={'input-box mt-2 '+(error?'with-error ':'')+(value?'filled ':'')}>
-			<textarea placeholder='Введите сообщение' rows='4' onFocus={(e)=>{e.target.placeholder=''}} onBlur={blurHandler} name='message' defaultValue={value}></textarea>
+			<textarea ref={setRef} placeholder='Введите сообщение' rows='4' onFocus={(e)=>{e.target.placeholder=''}} onBlur={blurHandler} name='message' defaultValue={value}></textarea>
 		</div>
 	)
 }
