@@ -4,6 +4,6 @@ var app=express();
 
 app.use(express.static(__dirname+'./../client/build'));
 
-app.listen(3001);
-
-console.log('now server is running on :3001');
+const port=process.env.PORT||3001;
+app.listen(port);
+console.log('now, server and theme are working on ',port);
