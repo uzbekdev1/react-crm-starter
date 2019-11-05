@@ -14,7 +14,7 @@ const Admin=(props)=>{
         );
     });
 
-    if((!props.user) && props.location.pathname!==(props.match.path+'/login')){
+    if((!props.user && !props.user.loggedIn) && props.location.pathname!==(props.match.path+'/login')){
     	return(
     		<Redirect to={props.match.path+'/login'} />
     	)
