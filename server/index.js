@@ -1,9 +1,31 @@
 var express = require('express');
+var mongoose=require('mongoose');
 var path=require('path');
+var bodyParser=require('body-parser');
 
 var app=express();
 
+// Connect database
+const mongoDBUrl='mongodb://178.33.123.109:27017/t1-form';
+mongoose.connect(mongoDBUrl,{useNewUrlParser:true});
+mongoose.connection.once('open',function(){
+  console.log('Connected to the database');
+}).on('error',function(error){
+  console.log('There is an error in connecting db: '+error);
+});
+
 app.use(express.static(path.join(__dirname,'..','client','build')));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.post('*',function(req,res,next){
+  console.log('post request');
+  console.log(req.body);
+  next();
+});
+
+app.use('/api',require('./api/index.js'));
 
 app.use(function(req,res,next){
   if(app.get('env')==='development'){
@@ -12,6 +34,12 @@ app.use(function(req,res,next){
     console.log('env',app.get('env'));
     res.sendFile(path.join(__dirname,'..','client','build','index.html'));
   }
+});
+
+app.use(function(err, req, res, next) {
+  console.log('environment '+app.get('env'));
+  console.log('Error: ',err.message);
+  res.status(err.status||500).end();
 });
 
 const port=process.env.PORT||3001;

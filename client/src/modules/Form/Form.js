@@ -1,7 +1,10 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Route, Link} from 'react-router-dom';
+import {Route, Link, Redirect} from 'react-router-dom';
+import {Button} from 'reactstrap';
+
+import {INPUT_NAME, SELECT_THEME, INPUT_EMAIL, INPUT_MESSAGE, RESET_FORM, SUBMIT_FORM_REQ, SUBMIT_FORM_RES, TOGGLE_THEMES_MENU} from './index';
 
 import './styles/form-page.css';
 
@@ -15,7 +18,8 @@ class Form extends React.Component{
 				message:'',
 				theme:''
 			},
-			formIsReady:false
+			formIsReady:false,
+			redirect:'',
 		}
 
 		this.setInputNameRef=(element)=>{
@@ -59,7 +63,7 @@ class Form extends React.Component{
 		});
 	}
 	submit=(e)=>{
-		const {name,email,theme,message}=this.props;
+		const {name,email,theme,message,submitForm,requestId}=this.props;
 		let {errors}=this.state;
 		if(!name){
 			errors.name='empty';
@@ -76,7 +80,11 @@ class Form extends React.Component{
 		if(errors.name || errors.email || errors.theme || errors.message){
 			e.preventDefault();
 		}else{
-			this.props.submitForm();
+			submitForm({name, email, theme:theme.name, message, id:requestId}).then((r)=>{
+				if(r.result==='success'){
+					this.setState({redirect:'/'});
+				}
+			});
 		}
 
 		this.setState({errors})
@@ -89,10 +97,15 @@ class Form extends React.Component{
 		this.inputMessage.value='';
 	}
 	render(){
-		const {themes,themesMenuOpened,theme,name,email,message,toggleThemesMenu,selectTheme,inputName,inputMail,inputMessage}=this.props
-		const {errors}=this.state;
-		console.log('form page props',this.props);
-		console.log('form page state',this.state);
+		const {themes,themesMenuOpened,theme,name,email,message,toggleThemesMenu,selectTheme,inputName,inputMail,inputMessage,submitting,submitted,requestId}=this.props;
+		const {errors, redirect}=this.state;
+
+		if(redirect){
+			return(
+				<Redirect to={redirect} />
+			);
+		}
+
 		return(
 			<div className='form-page'>
 				<div className='form-card'>
@@ -104,8 +117,8 @@ class Form extends React.Component{
 							<ThemeSelectMenu themes={themes} opened={themesMenuOpened} toggle={toggleThemesMenu} select={selectTheme} theme={theme} error={errors.theme} validator={this.validateField} />
 							<Textarea changeHandler={inputMessage} value={message} validator={this.validateField} error={errors.message} setRef={this.setInputMessageRef}/>
 							<div className='form-footer mt-2'>
-								<div className='button reset-button' onClick={this.resetForm}>Сбросить</div>
-								<Link onClick={this.submit} to={'/'} className='button ml-auto'>Отправить</Link>
+								<Button className='button reset-button' onClick={this.resetForm}>Сбросить</Button>
+								<Button className='button ml-auto' onClick={this.submit}>Отправить</Button>
 							</div>
 						</form>
 					</div>
@@ -215,41 +228,56 @@ const mapDispatchToProps=dispatch=>{
 	return {
 		toggleThemesMenu:()=>{
 			dispatch({
-				type:'TOGGLE_THEMES_MENU'
+				type:TOGGLE_THEMES_MENU
 			});
 		},
 		selectTheme:(index)=>{
 			dispatch({
-				type:'SELECT_THEME',
+				type:SELECT_THEME,
 				value:index
 			});
 		},
 		inputName:(name)=>{
 			dispatch({
-				type:'INPUT_NAME',
+				type:INPUT_NAME,
 				name
 			});
 		},
 		inputMail:(email)=>{
 			dispatch({
-				type:'INPUT_EMAIL',
+				type:INPUT_EMAIL,
 				email
 			});
 		},
 		inputMessage:(message)=>{
 			dispatch({
-				type:'INPUT_MESSAGE',
+				type:INPUT_MESSAGE,
 				message
 			});
 		},
 		resetForm:()=>{
 			dispatch({
-				type:'RESET_FORM'
+				type:RESET_FORM
 			});
 		},
-		submitForm:()=>{
+		submitForm:(data)=>{
 			dispatch({
-				type:'SUBMIT_FORM'
+				type:SUBMIT_FORM_REQ
+			});
+			console.log('submitting',data);
+			return fetch('/api/request/store',{
+				method:"POST",
+				body:JSON.stringify(data),
+				headers: {
+			        'Accept': 'application/json',
+			        'Content-Type': 'application/json'
+			    }
+			}).then((res)=>res.ok?res.json():{}).then((json)=>{
+				dispatch({
+					type:SUBMIT_FORM_RES,
+					payload:json?json:{result:'error',data:{}}
+				});
+				return json;
 			});
 		}
 	}

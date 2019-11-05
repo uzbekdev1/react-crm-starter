@@ -1,17 +1,13 @@
 import {createStore,applyMiddleware,combineReducers} from 'redux';
+import {createLogger} from 'redux-logger';
 import modules from './modules';
 import {flatModules} from './modules/functions';
-
-//const composeEnhancers = typeof window === 'object'
-  // && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-  // ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
-  // : compose;
 
 const createAppStore = (reducer, ...middleware) => {
   //middleware.push(thunk)
   const store = createStore(
-    reducer
-    //composeEnhancers(applyMiddleware(...middleware))
+    reducer,
+    applyMiddleware(createLogger())
   );
   return store
 }
@@ -27,15 +23,15 @@ export const combineModuleReducers = modules => {
 
     reducers[flat[i].MODULE] = red
 
-    if(typeof(flat[i].children) === 'object'){
-      for(let j in flat[i].children){
-        if(typeof(flat[i].children[j].reducer) !== 'function'){
-          throw new Error('Module ' + j + ' does not define reducer!')
-        }
+    // if(typeof(flat[i].children) === 'object'){
+    //   for(let j in flat[i].children){
+    //     if(typeof(flat[i].children[j].reducer) !== 'function'){
+    //       throw new Error('Module ' + j + ' does not define reducer!')
+    //     }
 
-        reducers[j] = flat[i].children[j].reducer
-      }
-    }
+    //     reducers[j] = flat[i].children[j].reducer
+    //   }
+    // }
   }
   return reducers
 }

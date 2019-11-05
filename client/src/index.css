@@ -59,6 +59,11 @@ code {
   color: #aaa;
 }
 
+a, a:hover{
+  text-decoration: none;
+  color: inherit;
+}
+
 /*        RESPONSIVE           */
 @media(max-width: 1400px){
   .form-card{
