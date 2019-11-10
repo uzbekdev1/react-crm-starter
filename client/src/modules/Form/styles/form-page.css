@@ -1,7 +1,7 @@
 .form-page{
 	min-height: 100vh;
 	background: #474747;
-	padding: 3rem;
+	padding: 3rem 0;
 }
 
 .form-card{
@@ -151,4 +151,44 @@
 }
 .input-box .custom-select-option:hover{
 	background-color: #eee;
+}
+
+/*        RESPONSIVE           */
+@media(max-width: 1400px){
+  .form-card{
+    max-width: 40%;
+  }
+}
+
+@media(max-width: 1200px){
+  .form-card{
+    max-width:45%;
+  }
+}
+
+@media(max-width: 991px){
+  html{
+    font-size: 14px;
+  }
+}
+
+@media(max-width: 768px){
+  .form-card{
+    max-width: 60%;
+  }
+  .button{
+    padding: 1rem 2rem;
+  }
+}
+
+@media(max-width: 576px){
+  html{
+    font-size: 12px;
+  }
+  .form-page, .main-page{
+    padding: 2rem;
+  }
+  .form-card{
+    max-width: 100%;
+  }
 }

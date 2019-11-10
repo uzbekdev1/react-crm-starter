@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Route, Link, Redirect} from 'react-router-dom';
-import {Button} from 'reactstrap';
+import {Button, CardTitle} from 'reactstrap';
 
 import {INPUT_NAME, SELECT_THEME, INPUT_EMAIL, INPUT_MESSAGE, RESET_FORM, SUBMIT_FORM_REQ, SUBMIT_FORM_RES, TOGGLE_THEMES_MENU} from './index';
 
@@ -109,6 +109,11 @@ class Form extends React.Component{
 		return(
 			<div className='form-page'>
 				<div className='form-card'>
+					<CardTitle>
+						<Link to='/'>
+							<Button close />
+						</Link>
+					</CardTitle>
 					<div className='form-card-body'>
 						<form>
 							<h2 className='form-title'>Форма для тебя</h2>
