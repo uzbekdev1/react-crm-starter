@@ -37,6 +37,11 @@ export const reducer=(state=defaultState, action)=>{
 				request,
 				loadingRequest:false
 			}
+		case LOAD_REQUESTS_REQ:
+			return {
+				...state,
+				loadingRequests:true
+			}
 		case LOAD_REQUESTS_RES:
 			return {
 				...state,

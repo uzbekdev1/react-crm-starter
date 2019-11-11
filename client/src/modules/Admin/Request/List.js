@@ -19,6 +19,7 @@ import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import Title from '../components/Title';
 import {LOAD_REQUESTS_REQ, LOAD_REQUESTS_RES, SHOW_DELETE_DIALOG, CLOSE_DELETE_DIALOG, DELETE_RES} from './index';
@@ -36,87 +37,104 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(2),
     display: 'flex',
     overflow: 'auto',
-    flexDirection: 'column',
+    flexDirection: 'column'
+  },
+  loader:{
+  	margin:'auto'
   }
 }));
 
 function DeleteConfirmationDialog(props) {
   const { onClose,  open, deleteId, ...other} = props;
 
-  return (
-    <Dialog
-      	disableBackdropClick
-      	disableEscapeKeyDown
-      	maxWidth="xs"
-     	aria-labelledby="confirmation-dialog-title"
-      	open={open}
-      	{...other}
-    >
-      <DialogContent dividers>
-      	Are you sure to delete this item? You will not be able to recover this
-      </DialogContent>
-      <DialogActions>
-        <Button autoFocus onClick={(e)=>onClose('cancel')} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={(e)=>onClose('ok',deleteId)} color="primary">
-          Ok
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+  	return (
+	    <Dialog
+	      	disableBackdropClick
+	      	disableEscapeKeyDown
+	      	maxWidth="xs"
+	     	aria-labelledby="confirmation-dialog-title"
+	      	open={open}
+	      	{...other}
+	    >
+	      	<DialogContent dividers>
+	      		Are you sure to delete this item? You will not be able to recover this
+	      	</DialogContent>
+	      	<DialogActions>
+	        	<Button autoFocus onClick={(e)=>onClose('cancel')} color="primary">
+	          		Cancel
+	        	</Button>
+	        	<Button onClick={(e)=>onClose('ok',deleteId)} color="primary">
+	          		Ok
+	        	</Button>
+	      	</DialogActions>
+	    </Dialog>
+  	);
 }
 
-export function RequestsTable({requests, loadRequests, path, showDeleteDialog, header}) {
-  	const classes = useStyles();	
+export function RequestsTableCard(props){
+  	const classes = useStyles();
 
-  	requests=requests.map((r,i)=>{
-  		return(
-  			<TableRow key={i}>
-  			  	<TableCell>{r.name}</TableCell>
-  			  	<TableCell>{r.email}</TableCell>
-  			  	<TableCell>{r.theme}</TableCell>
-  			  	<TableCell>{r.message}</TableCell>
-  			  	<TableCell align="right">
-  			  		<Link to={path+'/edit/'+r._id}>
-  			  			<Fab color='secondary' size='small' aria-label='Edit'>
-  			  				<EditIcon />
-  			  			</Fab>
-  			  		</Link>
-  			  		<Fab size='small' aria-label='Delete' className='ml-2' onClick={(e)=>showDeleteDialog(r._id)}>
-  			  			<DeleteIcon />
-  			  		</Fab>
-  			  	</TableCell>
-  			</TableRow>
-  		);
-  	})
+  	var header=props.header?(
+  		<Title>{props.header}</Title>
+  	) : '';
 
-  	header=header ? (<Title>{header}</Title>) : '';
-  	return (
+  	return(
 	    <Container maxWidth="lg" className={classes.container}>
 	      	<Grid container spacing={3}>
 	        	<Grid item xs={12}>
 	          		<Paper className={classes.paper}>
 	          			{header}
-					    <Table size="small">
-					        <TableHead>
-					          <TableRow>
-					            <TableCell>Name</TableCell>
-					            <TableCell>Email</TableCell>
-					            <TableCell>Theme</TableCell>
-					            <TableCell>Message</TableCell>
-					            <TableCell align="right">Action</TableCell>
-					          </TableRow>
-					        </TableHead>
-					        <TableBody>
-					          {requests}
-					        </TableBody>
-					    </Table>
+					    <RequestsTable {...props} />
 	           		</Paper>
 	         	</Grid>
 	       	</Grid>
 	    </Container>
   	);
+}
+
+const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
+	const classes = useStyles();
+	if(loading){
+		return(<CircularProgress className={classes.loader} />);
+	}
+
+	requests=requests.map((r,i)=>{
+		return(
+			<TableRow key={i}>
+			  	<TableCell>{r.name}</TableCell>
+			  	<TableCell>{r.email}</TableCell>
+			  	<TableCell>{r.theme}</TableCell>
+			  	<TableCell>{r.message}</TableCell>
+			  	<TableCell align="right">
+			  		<Link to={path+'/edit/'+r._id}>
+			  			<Fab color='secondary' size='small' aria-label='Edit'>
+			  				<EditIcon />
+			  			</Fab>
+			  		</Link>
+			  		<Fab size='small' aria-label='Delete' className='ml-2' onClick={(e)=>showDeleteDialog(r._id)}>
+			  			<DeleteIcon />
+			  		</Fab>
+			  	</TableCell>
+			</TableRow>
+		);
+	});
+
+	return(
+		<Table size="small">
+		    <TableHead>
+		      <TableRow>
+		        <TableCell>Name</TableCell>
+		        <TableCell>Email</TableCell>
+		        <TableCell>Theme</TableCell>
+		        <TableCell>Message</TableCell>
+		        <TableCell align="right">Action</TableCell>
+		      </TableRow>
+		    </TableHead>
+		    <TableBody>
+		      {requests}
+		    </TableBody>
+		</Table>
+	);
 }
 
 class List extends React.Component{
@@ -135,7 +153,7 @@ class List extends React.Component{
 		const {match, requests, loadingRequests, showDeleteDialog, closeDeleteDialog, deleteDialogOpen, deleteId, header}=this.props;
 		return(
 			<React.Fragment>
-				<RequestsTable requests={requests} loading={loadingRequests} path={match ? match.path : '/admin/request'} showDeleteDialog={showDeleteDialog} header={header} />
+				<RequestsTableCard requests={requests} loading={loadingRequests} path={match ? match.path : '/admin/request'} showDeleteDialog={showDeleteDialog} header={header} />
 				<DeleteConfirmationDialog
 				  	id="ringtone-menu"
 				  	deleteId={deleteId}

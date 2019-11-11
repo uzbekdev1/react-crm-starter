@@ -2,7 +2,7 @@ import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Route, Link, Redirect} from 'react-router-dom';
-import {Button, CardTitle} from 'reactstrap';
+import {Button, CardTitle, Spinner} from 'reactstrap';
 
 import {INPUT_NAME, SELECT_THEME, INPUT_EMAIL, INPUT_MESSAGE, RESET_FORM, SUBMIT_FORM_REQ, SUBMIT_FORM_RES, TOGGLE_THEMES_MENU} from './index';
 
@@ -123,7 +123,7 @@ class Form extends React.Component{
 							<Textarea changeHandler={inputMessage} value={message} validator={this.validateField} error={errors.message} setRef={this.setInputMessageRef}/>
 							<div className='form-footer mt-2'>
 								<Button className='button reset-button' onClick={this.resetForm}>Сбросить</Button>
-								<Button className='button ml-auto' onClick={this.submit}>Отправить</Button>
+								<SubmitButton onClick={this.submit} loading={submitting} />
 							</div>
 						</form>
 					</div>
@@ -131,6 +131,17 @@ class Form extends React.Component{
 			</div>
 		);
 	}
+}
+
+const SubmitButton=({onClick, loading})=>{
+	return(
+		<React.Fragment>
+			<Button className='button ml-auto' onClick={onClick} disabled={loading} >
+				
+				{loading ? <Spinner className={'button-progress'} size={'sm'} /> : 'Отправить'}
+			</Button>
+		</React.Fragment>
+	);
 }
 
 function InputBox({changeHandler,value,placeholder,name,cl,validator,error,setRef}){
