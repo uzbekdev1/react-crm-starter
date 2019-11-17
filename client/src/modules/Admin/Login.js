@@ -15,7 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 
-import {SIGN_IN} from './index';
+import {SIGN_IN_REQ, SIGN_IN_RES} from './index';
 
 function Copyright() {
   return (
@@ -110,7 +110,7 @@ const LoginForm=({changeHandler,submitHandler, failed})=>{
 			      	fullWidth
 			      	id="email"
 			      	label="Email Address"
-			      	name="email"
+			      	name="username"
 			      	autoComplete="off"
 			      	autoFocus
 			      	onChange={(e)=>changeHandler('email',e.target.value)}
@@ -166,13 +166,25 @@ const mapStateToProps=state=>{
 
 const mapDispatchToProps=dispatch=>{
 	return {
-		signIn:(email,password)=>{
-			console.log('signing in');
+		signIn:(username,password)=>{
+			console.log('signing in',username+password);
 			dispatch({
-				type:SIGN_IN,
-				payload:{
-					email,
-					password
+				type:SIGN_IN_REQ
+			});
+			return fetch('/admin/login',{
+				method:'POST',
+				body:JSON.stringify({username,password}),
+				headers: {
+			        'Accept': 'application/json',
+			        'Content-Type': 'application/json'
+			    }
+			}).then((res)=>res.ok?res.json():{}).then((json)=>{
+				dispatch({
+					type:SIGN_IN_RES,
+					payload:json.user
+				});
+				if(json.result==='success'){
+					
 				}
 			});
 		}

@@ -183,7 +183,7 @@ function AdminLayout(props) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
+          <Typography component="h1" variant="h4" color="inherit" noWrap className={classes.title}>
             {props.title}
           </Typography>
           <IconButton color="inherit">
@@ -223,14 +223,14 @@ function AdminLayout(props) {
 // 	name:PropTypes.string
 // }
 
-// const mapStateToProps=(state)=>{
-// 	return {...state.Default};
-// }
+const mapStateToProps=(state)=>{
+	return {title:state.Admin.title};
+}
 
-// const mapDispatchToProps=(dispatch)=>{
-// 	return {}
-// }
+const mapDispatchToProps=(dispatch)=>{
+	return {}
+}
 
-// const DashboardContainer=connect(mapStateToProps)(Dashboard);
+const LayoutContainer=connect(mapStateToProps)(AdminLayout);
 
-export default AdminLayout;
+export default LayoutContainer;

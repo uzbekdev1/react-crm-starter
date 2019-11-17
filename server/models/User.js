@@ -1,22 +1,21 @@
 var mongoose=require('mongoose');
 var Types=mongoose.Schema.Types;
 
-var RequestSchema=new mongoose.Schema({
+var UserSchema=new mongoose.Schema({
 	name:{
-		type:String,
-		required:true
+		type:String
 	},
 	email:{
 		type:String,
 		lowercase:true,
 		match: [/\S+@\S+\.\S+/, 'is invalid']
 	},
-	theme:{
+	username:{
 		type:String
 	},
-	address:{
+	password:{
 		type:String
 	}
 });
 
-module.exports=mongoose.model('Request',RequestSchema);
+module.exports=mongoose.model('User',UserSchema);

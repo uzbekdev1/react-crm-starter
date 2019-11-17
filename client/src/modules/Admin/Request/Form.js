@@ -11,16 +11,18 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import Button from '@material-ui/core/Button';
+import {
+	Button,
+	LinearProgress,
+	CircularProgress
+} from '@material-ui/core';
+import ChevronLeft from '@material-ui/icons/ChevronLeft';
 
 import Title from '../components/Title';
-import {LOAD_REQUEST_REQ, LOAD_REQUEST_RES, UPDATE_REQ, UPDATE_RES} from './index';
+import {LOAD_REQUEST_REQ, LOAD_REQUEST_RES, SAVE_REQ, SAVE_RES} from './index';
 import {SET_TITLE} from '../index';
 
 const useStyles = makeStyles(theme => ({
-  	seeMore: {
-    	marginTop: theme.spacing(3),
-  	},
   	container: {
     	paddingTop: theme.spacing(4),
     	paddingBottom: theme.spacing(4),
@@ -42,24 +44,28 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export function EditForm({request, match, themes, update}) {
+export function FormCard({request, match, themes, update, action, saving}) {
   	const classes = useStyles();
   	const [redirect, setRedirect]=React.useState('');
 
   	const submitHandler=e=>{
   		var inputs=e.target.elements;
   		var data={
-  			id:match.params.requestId,
   			name:inputs.name.value,
   			email:inputs.email.value,
-  			theme:inputs.theme.value,
+  			address:inputs.address.value,
   			message:inputs.message.value
   		}
+  		if(action==='edit'){
+  			data.id=match.params.requestId;	
+  		}
+
   		update(data).then((json)=>{
   			if(json.result==='success'){
   				setRedirect('/admin/request');
   			}
   		});
+  		
   		e.preventDefault();
   	}
 
@@ -73,6 +79,9 @@ export function EditForm({request, match, themes, update}) {
   	return (
 	    <Container maxWidth="lg" className={classes.container}>
 	      	<Grid container spacing={3}>
+	      		<Grid item xs={6}>
+	      			<Link to={'/admin/request'}><Button variant='contained' color='primary'><ChevronLeft /> Back to list</Button></Link>
+	      		</Grid>
 	        	<Grid item xs={12}>
 	          		<Paper className={classes.paper}>
 					    <form onSubmit={submitHandler}>
@@ -86,6 +95,7 @@ export function EditForm({request, match, themes, update}) {
 					    	          	variant="outlined"
 					    	          	name='name'
 					    	          	defaultValue={request.name}
+					    	          	required
 					    	        />
 					    	    </Grid>
 					    	    <Grid item sm={6}>
@@ -100,12 +110,20 @@ export function EditForm({request, match, themes, update}) {
 	    	            	        />
 	    	            	    </Grid>
 	    	            	    <Grid item sm={12}>
-	    	            	    	<ThemesSelectMenu theme={request.theme} themes={themes}/>
+	    	            	    	<TextField
+	    	            	          	id="outlined-basic"
+	    	            	          	className={classes.textField}
+	    	            	          	label={"Address"}
+	    	            	         	margin={"normal"}
+	    	            	          	variant={"outlined"}
+	    	            	          	name={'address'}
+	    	            	          	defaultValue={request.address}
+	    	            	        />
 	    	            	    </Grid>
 	    	            	    <Grid item sm={12}>
 	    	            	    	<TextField
 	    	            	    	    id="outlined-multiline-static"
-	    	            	    	    label="Message"
+	    	            	    	    label="Description"
 	    	            	    	    multiline
 	    	            	    	    rows="4"
 	    	            	    	    defaultValue={request.message}
@@ -116,8 +134,8 @@ export function EditForm({request, match, themes, update}) {
 	    	            	    	/>
 	    	            	    </Grid>
 	    	            	    <Grid item sm={12}>
-		    	            	    <Button type='submit' variant="contained" color="primary" className={classes.button}>
-		    	            	        Save
+		    	            	    <Button type='submit' variant="contained" color="primary" className={classes.button} disabled={saving}>
+		    	            	        {saving ? <CircularProgress size={'1rem'} /> : 'Save'}
 		    	            	    </Button>
 		    	            	</Grid>
 	    	            	</Grid>
@@ -168,25 +186,36 @@ const ThemesSelectMenu=props=>{
 	)
 }
 
-class Edit extends React.Component{
+class Form extends React.Component{
 	constructor(props){
 		super(props);
+		this.state={
+			action:''
+		}
 	}
 	componentDidMount(){
-		const {requests, loadRequest, match, setTitle}=this.props;
-		setTitle('Edit employee');
-		loadRequest(match.params.requestId);
+		const {loadRequest, match, setTitle}=this.props;
+		if(match.params.requestId){
+			this.setState({action:'edit'});
+			setTitle('Edit employee');
+			loadRequest(match.params.requestId);
+		}else{
+			this.setState({action:'add'});
+			setTitle('Add employee');
+		}
+		
 	}
 	render(){
 		console.log('Edit Request',this.props);
-		const {match, request, themes, update, loadingRequest}=this.props;
+		const {match, request, themes, update, loadingRequest, saving}=this.props;
+		const {action}=this.state;
 		if(!loadingRequest){
 			return(
-				<EditForm request={request} match={match} themes={themes} update={update} />
+				<FormCard action={action} request={action=='edit'?request:{}} match={match} themes={themes} update={update} saving={saving}/>
 			);
 		}else{
 			return(
-				<div>loading...</div>
+				<LinearProgress />
 			)
 		}
 	}
@@ -198,7 +227,7 @@ const mapStateToProps=(state)=>{
 		requests:s.requests,
 		request:s.request,
 		loadingRequest:s.loadingRequest,
-		themes:state.Form.themes
+		saving:s.saving
 	}
 }
 
@@ -223,7 +252,7 @@ const mapDispatchToProps=(dispatch)=>{
 		},
 		update:(data)=>{
 			dispatch({
-				type:UPDATE_REQ
+				type:SAVE_REQ
 			});
 			return fetch('/api/request/store',{
 				method:'POST',
@@ -234,7 +263,7 @@ const mapDispatchToProps=(dispatch)=>{
 			    }
 			}).then((res)=>res.ok?res.json():{}).then((json)=>{
 				dispatch({
-					type:UPDATE_RES,
+					type:SAVE_RES,
 					payload:{
 						request:json.data,
 						result:json.result
@@ -249,6 +278,6 @@ const mapDispatchToProps=(dispatch)=>{
 const ListContainer=connect(
 	mapStateToProps,
 	mapDispatchToProps
-)(Edit);
+)(Form);
 
 export default ListContainer;

@@ -21,8 +21,9 @@ import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 
-import EmployeesList from '../Request/List';
+import {ListContainer as EmployeesList} from '../Request/List';
 import {SET_TITLE} from '../index';
+import withTitle from '../withTitle';
 
 function Copyright() {
   return (
@@ -53,14 +54,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function Dashboard(props) {
-  props.setTitle('Dashboard');
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   console.log('Dashboard',props);
 
   return (
     <React.Fragment>
-      <EmployeesList header="Employees" />
+      <EmployeesList employees={props.employees} header="Employees" />
       <Container maxWidth="lg" className={classes.container}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -75,17 +75,13 @@ function Dashboard(props) {
 }
 
 const mapStateToProps=(state)=>{
-	return {...state.Dashboard};
+	return {
+    ...state.Dashboard
+  };
 }
 
 const mapDispatchToProps=(dispatch)=>{
 	return {
-    setTitle:(title)=>{
-      dispatch({
-        type:SET_TITLE,
-        payload:title
-      });
-    }
   }
 }
 
@@ -94,4 +90,4 @@ const DashboardContainer=connect(
   mapDispatchToProps
 )(Dashboard);
 
-export default DashboardContainer;
+export default withTitle(DashboardContainer)('Dashboard');

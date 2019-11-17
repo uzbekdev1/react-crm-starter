@@ -2,6 +2,9 @@ var express = require('express');
 var mongoose=require('mongoose');
 var path=require('path');
 var bodyParser=require('body-parser');
+var session=require('express-session');
+
+const authMiddleware=require('./middleware/auth.js');
 
 var app=express();
 
@@ -19,13 +22,24 @@ app.use(express.static(path.join(__dirname,'..','client','build')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(session({
+  cookie:{
+    maxAge:6*3600*1000  // 6 hours
+  },
+  resave: true, 
+  saveUninitialized: true, 
+  secret: 'JavlonbekProduction'
+}));
+
 app.post('*',function(req,res,next){
   console.log('post request');
   console.log(req.body);
   next();
 });
 
-app.use('/api',require('./api/index.js'));
+app.post('/admin/login',require('./api/user.js').login);
+
+app.use('/api',authMiddleware,require('./api/index.js'));
 
 app.use(function(req,res,next){
   if(app.get('env')==='development'){

@@ -29,7 +29,7 @@ const requestAPI={
 			Request.findById(b.id,(err,request)=>{
 				request.name=b.name;
 				request.email=b.email;
-				request.theme=b.theme;
+				request.address=b.address;
 				request.message=b.message;
 
 				request.save(function(err,result){
@@ -44,7 +44,7 @@ const requestAPI={
 			var request= new Request;
 			request.name=b.name;
 			request.email=b.email;
-			request.theme=b.theme;
+			request.address=b.address;
 			request.message=b.message;
 
 			request.save(function(err,result){

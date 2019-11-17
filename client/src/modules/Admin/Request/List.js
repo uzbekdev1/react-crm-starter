@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Route, Link} from 'react-router-dom';
@@ -20,10 +20,19 @@ import AddIcon from '@material-ui/icons/Add';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import {
+	Card,
+	CardActions,
+	CardContent,
+	CardHeader,
+	TablePagination,
+	Checkbox
+} from '@material-ui/core';
 
 import Title from '../components/Title';
+import SearchBar from '../components/ToolbarSearch';
 import {LOAD_REQUESTS_REQ, LOAD_REQUESTS_RES, SHOW_DELETE_DIALOG, CLOSE_DELETE_DIALOG, DELETE_RES} from './index';
-import {SET_TITLE} from '../index';
+import withTitle from '../withTitle';
 
 const useStyles = makeStyles(theme => ({
   seeMore: {
@@ -34,13 +43,19 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(4),
   },
   paper: {
-    padding: theme.spacing(2),
     display: 'flex',
     overflow: 'auto',
     flexDirection: 'column'
   },
+  cardContent:{
+  	padding:0
+  },
   loader:{
   	margin:'auto'
+  },
+  addButton:{
+  	height:'100%',
+  	float:'right'
   }
 }));
 
@@ -71,70 +86,167 @@ function DeleteConfirmationDialog(props) {
   	);
 }
 
-export function RequestsTableCard(props){
+const RequestsTableCard=(props)=>{
   	const classes = useStyles();
 
   	var header=props.header?(
-  		<Title>{props.header}</Title>
+  		<CardHeader title={props.header} >
+  		</CardHeader>
   	) : '';
+
+  	const [rowsPerPage, setRowsPerPage] = useState(10);
+  	const [page, setPage] = useState(0);
+
+  	const handlePageChange = (event, page) => {
+  	  setPage(page);
+  	};
+
+  	const handleRowsPerPageChange = event => {
+  	  setRowsPerPage(event.target.value);
+  	};
 
   	return(
 	    <Container maxWidth="lg" className={classes.container}>
 	      	<Grid container spacing={3}>
+	      		<Grid item xs={6}>
+	      			<SearchBar placeholder={"search employee"}/>
+	      		</Grid>
+	      		<Grid item xs={6}>
+	      			<Link to={props.path+'/add'}>
+		      			<Button
+		      				className={classes.addButton}
+		      			  	color={"primary"}
+		      			  	variant="contained"
+		      			>
+		      			  	Add employee
+		      			</Button>
+		      		</Link>
+	      		</Grid>
 	        	<Grid item xs={12}>
-	          		<Paper className={classes.paper}>
-	          			{header}
-					    <RequestsTable {...props} />
-	           		</Paper>
+	          		<Card className={classes.paper}>
+	          			<CardContent className={classes.cardContent} >
+	          				{header}
+					    	<RequestsTable {...props} />
+					    </CardContent>
+					    <CardActions className={classes.actions}>
+					      	<TablePagination
+						        component="div"
+						        count={props.requests ? props.requests.length : 0}
+						        onChangePage={handlePageChange}
+						        onChangeRowsPerPage={handleRowsPerPageChange}
+						        page={page}
+						        rowsPerPage={rowsPerPage}
+						        rowsPerPageOptions={[5, 10, 25]}
+					      	/>
+					    </CardActions>
+	           		</Card>
 	         	</Grid>
 	       	</Grid>
 	    </Container>
   	);
 }
+RequestsTableCard.propTypes={
+	requests:PropTypes.array,
+	loading:PropTypes.bool,
+	showDeleteDialog:PropTypes.func,
+	header:PropTypes.string
+}
 
 const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
 	const classes = useStyles();
-	if(loading){
+	const [selectedItems, setSelectedItems] = useState([]);
+
+	const handleSelectOne = (event, id) => {
+  	  	const selectedIndex = selectedItems.indexOf(id);
+  	  	let newSelectedItems = [];
+
+  	  	if (selectedIndex === -1) {
+  	    	newSelectedItems = newSelectedItems.concat(selectedItems, id);
+  	  	} else if (selectedIndex === 0) {
+  	    	newSelectedItems = newSelectedItems.concat(selectedItems.slice(1));
+  	  	} else if (selectedIndex === selectedItems.length - 1) {
+  	    	newSelectedItems = newSelectedItems.concat(selectedItems.slice(0, -1));
+  	  	} else if (selectedIndex > 0) {
+  	    	newSelectedItems = newSelectedItems.concat(
+	  	      	selectedItems.slice(0, selectedIndex),
+	  	      	selectedItems.slice(selectedIndex + 1)
+  	    	);
+  		}
+
+  	  	setSelectedItems(newSelectedItems);
+  	};
+
+  	const handleSelectAll = event => {
+  		var items=requests;
+  	  	let selectedItems;
+  	  	if (event.target.checked) {
+  	    	selectedItems = items.map(i => i._id);
+  	  	} else {
+  	    	selectedItems = [];
+  	  	}
+  	  	setSelectedItems(selectedItems);
+  	};
+
+	if(!requests || loading){
 		return(<CircularProgress className={classes.loader} />);
-	}
+	}else{
+		const requestRows=requests.map((r,i)=>{
+			return(
+				<TableRow key={i}>
+					<TableCell>
+						<Checkbox
+						  checked={selectedItems.indexOf(r._id) !== -1}
+						  color={"primary"}
+						  onChange={event => handleSelectOne(event, r._id)}
+						  value={"true"}
+						/>
+					</TableCell>
+				  	<TableCell>{r.name}</TableCell>
+				  	<TableCell>{r.email}</TableCell>
+				  	<TableCell>{r.address}</TableCell>
+				  	<TableCell>{r.message}</TableCell>
+				  	<TableCell align="right">
+				  		<Link to={path+'/edit/'+r._id}>
+				  			<Fab color='secondary' size='small' aria-label='Edit'>
+				  				<EditIcon />
+				  			</Fab>
+				  		</Link>
+				  		<Fab size='small' aria-label='Delete' className='ml-2' onClick={(e)=>showDeleteDialog(r._id)}>
+				  			<DeleteIcon />
+				  		</Fab>
+				  	</TableCell>
+				</TableRow>
+			);
+		});
 
-	requests=requests.map((r,i)=>{
 		return(
-			<TableRow key={i}>
-			  	<TableCell>{r.name}</TableCell>
-			  	<TableCell>{r.email}</TableCell>
-			  	<TableCell>{r.theme}</TableCell>
-			  	<TableCell>{r.message}</TableCell>
-			  	<TableCell align="right">
-			  		<Link to={path+'/edit/'+r._id}>
-			  			<Fab color='secondary' size='small' aria-label='Edit'>
-			  				<EditIcon />
-			  			</Fab>
-			  		</Link>
-			  		<Fab size='small' aria-label='Delete' className='ml-2' onClick={(e)=>showDeleteDialog(r._id)}>
-			  			<DeleteIcon />
-			  		</Fab>
-			  	</TableCell>
-			</TableRow>
+			<Table size="small">
+			    <TableHead>
+			      <TableRow>
+			      	<TableCell>
+			      	  	<Checkbox
+				      	    checked={selectedItems.length === requests.length}
+				      	    color={"primary"}
+				      	    indeterminate={
+				      	      selectedItems.length > 0 &&
+				      	      selectedItems.length < requests.length
+				      	    }
+				      	    onChange={handleSelectAll}
+			      	  	/>
+			      	</TableCell>
+			        <TableCell>Name</TableCell>
+			        <TableCell>Email</TableCell>
+			        <TableCell>Address</TableCell>
+			        <TableCell>Description</TableCell>
+			        <TableCell align="right">Action</TableCell>
+			      </TableRow>
+			    </TableHead>
+			    <TableBody>
+			      {requestRows}
+			    </TableBody>
+			</Table>
 		);
-	});
-
-	return(
-		<Table size="small">
-		    <TableHead>
-		      <TableRow>
-		        <TableCell>Name</TableCell>
-		        <TableCell>Email</TableCell>
-		        <TableCell>Theme</TableCell>
-		        <TableCell>Message</TableCell>
-		        <TableCell align="right">Action</TableCell>
-		      </TableRow>
-		    </TableHead>
-		    <TableBody>
-		      {requests}
-		    </TableBody>
-		</Table>
-	);
+	}
 }
 
 class List extends React.Component{
@@ -143,7 +255,6 @@ class List extends React.Component{
 	}
 	componentDidMount(){
 		const {requests, loadRequests}=this.props;
-		this.props.setTitle('Employees');
 		if(!(requests && requests.length)){
 			loadRequests();
 		}
@@ -165,6 +276,8 @@ class List extends React.Component{
 		);
 	}
 }
+
+
 
 List.propTypes={
 	name:PropTypes.string
@@ -190,12 +303,6 @@ const mapDispatchToProps=(dispatch)=>{
 						requests
 					}
 				});
-			});
-		},
-		setTitle:(title)=>{
-			dispatch({
-				type:SET_TITLE,
-				payload:title
 			});
 		},
 		showDeleteDialog:(deleteId)=>{
@@ -231,9 +338,9 @@ const mapDispatchToProps=(dispatch)=>{
 	}
 }
 
-const ListContainer=connect(
+export const ListContainer=connect(
 	mapStateToProps,
 	mapDispatchToProps
 )(List);
 
-export default ListContainer;
+export default withTitle(ListContainer)('Employees');

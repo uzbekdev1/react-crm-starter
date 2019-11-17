@@ -4,26 +4,36 @@ import Dashboard, {reducer as dashboardReducer} from './Dashboard';
 import Admin from './Admin';
 import {defineModule} from '../functions';
 
-export const SIGN_IN='Admin/SignIn';
+export const SIGN_IN_REQ='Admin/SignInReq';
+export const SIGN_IN_RES='Admin/SignInRes';
 export const SET_TITLE='Admin/SetTitle';
 
 const defaultState={
 	title:'Dashboard'
 };
 
-const userReducer=(state={loggedIn:false},action)=>{
+const userReducer=(state={loggedIn:false, authenticating:false},action)=>{
 	switch(action.type){
-		case SIGN_IN:
+		case SIGN_IN_REQ:
+			return{
+				...state,
+				authenticating:true
+			}
+		case SIGN_IN_RES:
 			var p=action.payload;
-			if(p.email==='admin' && p.password==='123'){  // for now this is static login
-				return Object.assign({},state,{
+			if(p && p.username){
+				return {
+					...state,
 					...action.payload,
-					loggedIn:true
-				});
+					loggedIn:true,
+					authenticating:false
+				};
 			}else{
 				return {
 					...state,
-					loginFailed:true
+					loginFailed:true,
+					authenticating:false,
+					loggedIn:false
 				}
 			}
 		default:

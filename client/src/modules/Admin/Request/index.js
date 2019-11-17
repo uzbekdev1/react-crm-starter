@@ -8,8 +8,8 @@ export const LOAD_REQUESTS_REQ=actionPrefix+'LoadRequestsReq';
 export const LOAD_REQUESTS_RES=actionPrefix+'LoadRequestsRes';
 export const LOAD_REQUEST_REQ=actionPrefix+'LoadRequestReq';
 export const LOAD_REQUEST_RES=actionPrefix+'LoadRequestRes';
-export const UPDATE_REQ=actionPrefix+'UpdateReq';
-export const UPDATE_RES=actionPrefix+'UpdateRes';
+export const SAVE_REQ=actionPrefix+'SaveReq';
+export const SAVE_RES=actionPrefix+'SaveRes';
 export const SHOW_DELETE_DIALOG=actionPrefix+'ShowDeleteDialog';
 export const CLOSE_DELETE_DIALOG=actionPrefix+'CloseDeleteDialog';
 export const DELETE_RES=actionPrefix+'DeleteRes';
@@ -20,7 +20,8 @@ const defaultState={
 	request:{},
 	loadingRequest:false,
 	deleteDialogOpen:false,
-	deleteId:''
+	deleteId:'',
+	saving:false
 }
 
 export const reducer=(state=defaultState, action)=>{
@@ -48,17 +49,29 @@ export const reducer=(state=defaultState, action)=>{
 				loadingRequests:false,
 				requests:action.payload.requests
 			}
-		case UPDATE_RES:
-			var request=action.payload.request;
+		case SAVE_REQ:
 			return {
 				...state,
-				requests:state.requests.map((r,i)=>{
-					if(r._id === request._id){
-						return request;
-					}else{
-						return r;
-					}
-				})
+				saving:true
+			}
+		case SAVE_RES:
+			var request=action.payload.request;
+			var match=false;
+			var requests=state.requests.map((r,i)=>{
+				if(r && r._id === request._id){
+					match=true;
+					return request;
+				}else{
+					return r;
+				}
+			});
+			if(!match){
+				requests.push(request);
+			}
+			return {
+				...state,
+				requests,
+				saving:false
 			}
 		case SHOW_DELETE_DIALOG:
 			return{

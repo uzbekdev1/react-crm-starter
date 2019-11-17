@@ -1,11 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Redirect} from 'react-router-dom';
 
 const Home=(props)=>(
-	<div>
-		<h1>Home</h1>
-		{props.children}
-	</div>
+	<Redirect to={'/admin'} />
 );
 
 // Home.propTypes={
