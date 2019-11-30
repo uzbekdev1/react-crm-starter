@@ -19,7 +19,16 @@ import {
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 
 import Title from '../components/Title';
-import {LOAD_REQUEST_REQ, LOAD_REQUEST_RES, SAVE_REQ, SAVE_RES} from './index';
+import {
+	LOAD_ITEM_REQ, 
+	LOAD_ITEM_RES, 
+	SAVE_REQ, 
+	SAVE_RES
+} from './index';
+import {
+	LOAD_ITEMS_REQ as LOAD_CATEGORIES_REQ, 
+	LOAD_ITEMS_RES as LOAD_CATEGORIES_RES
+} from '../Category';
 import {SET_TITLE} from '../index';
 
 const useStyles = makeStyles(theme => ({
@@ -44,7 +53,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-export function FormCard({request, match, themes, update, action, saving}) {
+export function FormCard({item, match, categories, update, action, saving}) {
   	const classes = useStyles();
   	const [redirect, setRedirect]=React.useState('');
 
@@ -52,17 +61,16 @@ export function FormCard({request, match, themes, update, action, saving}) {
   		var inputs=e.target.elements;
   		var data={
   			name:inputs.name.value,
-  			email:inputs.email.value,
-  			address:inputs.address.value,
-  			message:inputs.message.value
+  			price:inputs.price.value,
+  			category:inputs.category.value
   		}
   		if(action==='edit'){
-  			data.id=match.params.requestId;	
+  			data.id=match.params.itemId;	
   		}
 
   		update(data).then((json)=>{
   			if(json.result==='success'){
-  				setRedirect('/admin/request');
+  				setRedirect('/admin/products');
   			}
   		});
   		
@@ -80,7 +88,7 @@ export function FormCard({request, match, themes, update, action, saving}) {
 	    <Container maxWidth="lg" className={classes.container}>
 	      	<Grid container spacing={3}>
 	      		<Grid item xs={6}>
-	      			<Link to={'/admin/employees'}><Button variant='contained' color='primary'><ChevronLeft /> Back to list</Button></Link>
+	      			<Link to={'/admin/products'}><Button variant='contained' color='primary'><ChevronLeft /> Back to list</Button></Link>
 	      		</Grid>
 	        	<Grid item xs={12}>
 	          		<Paper className={classes.paper}>
@@ -94,44 +102,23 @@ export function FormCard({request, match, themes, update, action, saving}) {
 					    	         	margin="normal"
 					    	          	variant="outlined"
 					    	          	name='name'
-					    	          	defaultValue={request.name}
+					    	          	defaultValue={item.name}
 					    	          	required
 					    	        />
 					    	    </Grid>
 					    	    <Grid item sm={6}>
-	    	        		    	<TextField
-	    	            	          	id="outlined-basic"
-	    	            	          	className={classes.textField}
-	    	            	          	label={"Email"}
-	    	            	         	margin={"normal"}
-	    	            	          	variant={"outlined"}
-	    	            	          	name={'email'}
-	    	            	          	defaultValue={request.email}
-	    	            	        />
+	    	        		    	<SelectMenu options={categories} value={item.category ? item.category._id : ''} />
 	    	            	    </Grid>
 	    	            	    <Grid item sm={12}>
 	    	            	    	<TextField
 	    	            	          	id="outlined-basic"
 	    	            	          	className={classes.textField}
-	    	            	          	label={"Address"}
+	    	            	          	label={"Price"}
 	    	            	         	margin={"normal"}
 	    	            	          	variant={"outlined"}
-	    	            	          	name={'address'}
-	    	            	          	defaultValue={request.address}
+	    	            	          	name={'price'}
+	    	            	          	defaultValue={item.price}
 	    	            	        />
-	    	            	    </Grid>
-	    	            	    <Grid item sm={12}>
-	    	            	    	<TextField
-	    	            	    	    id="outlined-multiline-static"
-	    	            	    	    label="Description"
-	    	            	    	    multiline
-	    	            	    	    rows="4"
-	    	            	    	    defaultValue={request.message}
-	    	            	    	    className={classes.textField}
-	    	            	    	    margin={"normal"}
-	    	            	    	    variant={"outlined"}
-	    	            	    	    name='message'
-	    	            	    	/>
 	    	            	    </Grid>
 	    	            	    <Grid item sm={12}>
 		    	            	    <Button type='submit' variant="contained" color="primary" className={classes.button} disabled={saving}>
@@ -147,8 +134,8 @@ export function FormCard({request, match, themes, update, action, saving}) {
   	);
 }
 
-const ThemesSelectMenu=props=>{
-	const [theme, setTheme] = React.useState(props.theme);
+const SelectMenu=props=>{
+	const [option, setOption] = React.useState(props.value);
 	const classes = useStyles();
 	const inputLabel = React.useRef(null);
 	const [labelWidth, setLabelWidth] = React.useState(0);
@@ -158,25 +145,25 @@ const ThemesSelectMenu=props=>{
 	}, []);
 
 	const handleChange = event => {
-	   	setTheme(event.target.value);
+	   	setOption(event.target.value);
 	};
 
-	const menuItems=props.themes.map((th,i)=>{
+	const menuItems=props.options.map((th,i)=>{
 		return(
-			<MenuItem value={th.name}>{th.name}</MenuItem>
+			<MenuItem key={i} value={th._id}>{th.name}</MenuItem>
 		)
 	});
 
 	return(
-    	<FormControl variant="outlined" className={classes.themesSelect}>
+    	<FormControl variant="outlined" margin="normal" className={classes.themesSelect}>
     	    <InputLabel ref={inputLabel} id={"demo-simple-select-outlined-label"}>
-    	        Theme
+    	        Category
     	    </InputLabel>
     	    <Select
 	          	labelId="demo-simple-select-outlined-label"
 	          	id="demo-simple-select-outlined"
-	          	name={'theme'} 
-	          	value={theme}
+	          	name={'category'}
+	          	value={option}
 	          	onChange={handleChange}
 	          	labelWidth={labelWidth}
     	    >
@@ -190,28 +177,29 @@ class Form extends React.Component{
 	constructor(props){
 		super(props);
 		this.state={
-			action:''
+			action:this.props.match.params.itemId ? 'edit' : 'add'
 		}
 	}
 	componentDidMount(){
-		const {loadRequest, match, setTitle}=this.props;
-		if(match.params.requestId){
-			this.setState({action:'edit'});
-			setTitle('Edit employee');
-			loadRequest(match.params.requestId);
+		const {loadItem, match, setTitle, loadCategories, categories}=this.props;
+		if(match.params.itemId){
+			setTitle('Edit product');
+			loadItem(match.params.itemId);
 		}else{
-			this.setState({action:'add'});
-			setTitle('Add employee');
+			setTitle('Add product');
 		}
 		
+		if(!categories.length){
+			loadCategories();
+		}
 	}
 	render(){
-		console.log('Edit Request',this.props);
-		const {match, request, themes, update, loadingRequest, saving}=this.props;
+		console.log('Edit item',this.props);
+		const {match, item, update, loadingItem, saving, categories}=this.props;
 		const {action}=this.state;
-		if(!loadingRequest){
+		if(!loadingItem){
 			return(
-				<FormCard action={action} request={action=='edit'?request:{}} match={match} themes={themes} update={update} saving={saving}/>
+				<FormCard action={action} item={action=='edit'?item:{}} match={match} categories={categories} update={update} saving={saving}/>
 			);
 		}else{
 			return(
@@ -222,24 +210,26 @@ class Form extends React.Component{
 }
 
 const mapStateToProps=(state)=>{
-	const s=state.Admin.Request
+	const s=state.Admin.Product;
+	const c=state.Admin.Category;
 	return {
-		requests:s.requests,
-		request:s.request,
-		loadingRequest:s.loadingRequest,
-		saving:s.saving
+		items:s.items,
+		item:s.item,
+		loadingItem:s.loadingItem,
+		saving:s.saving,
+		categories:c.items
 	}
 }
 
 const mapDispatchToProps=(dispatch)=>{
 	return {
-		loadRequest:(requestId)=>{
-			dispatch({type:LOAD_REQUEST_REQ});
-			return fetch('/api/request/get?id='+requestId).then((res)=>res.ok?res.json():{}).then((json)=>{
+		loadItem:(itemId)=>{
+			dispatch({type:LOAD_ITEM_REQ});
+			return fetch('/api/product/get?id='+itemId).then((res)=>res.ok?res.json():{}).then((json)=>{
 				dispatch({
-					type:LOAD_REQUEST_RES,
+					type:LOAD_ITEM_RES,
 					payload:{
-						request:json
+						item:json
 					}
 				});
 			});
@@ -254,7 +244,7 @@ const mapDispatchToProps=(dispatch)=>{
 			dispatch({
 				type:SAVE_REQ
 			});
-			return fetch('/api/request/store',{
+			return fetch('/api/product/store',{
 				method:'POST',
 				body:JSON.stringify(data),
 				headers: {
@@ -265,11 +255,24 @@ const mapDispatchToProps=(dispatch)=>{
 				dispatch({
 					type:SAVE_RES,
 					payload:{
-						request:json.data,
+						item:json.data,
 						result:json.result
 					}
 				});
 				return json;
+			});
+		},
+		loadCategories:()=>{
+			dispatch({
+				type:LOAD_CATEGORIES_REQ
+			});
+			return fetch('/api/category/get').then((res)=>res.ok?res.json():[]).then((items)=>{
+				dispatch({
+					type:LOAD_CATEGORIES_RES,
+					payload:{
+						items
+					}
+				});
 			});
 		}
 	}

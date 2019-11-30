@@ -31,7 +31,7 @@ import {
 
 import Title from '../components/Title';
 import SearchBar from '../components/ToolbarSearch';
-import {LOAD_REQUESTS_REQ, LOAD_REQUESTS_RES, SHOW_DELETE_DIALOG, CLOSE_DELETE_DIALOG, DELETE_RES} from './index';
+import {LOAD_ITEMS_REQ, LOAD_ITEMS_RES, SHOW_DELETE_DIALOG, CLOSE_DELETE_DIALOG, DELETE_RES} from './index';
 import withTitle from '../withTitle';
 
 const useStyles = makeStyles(theme => ({
@@ -61,7 +61,6 @@ const useStyles = makeStyles(theme => ({
 
 function DeleteConfirmationDialog(props) {
   const { onClose,  open, deleteId, ...other} = props;
-
   	return (
 	    <Dialog
 	      	disableBackdropClick
@@ -109,7 +108,7 @@ const RequestsTableCard=(props)=>{
 	    <Container maxWidth="lg" className={classes.container}>
 	      	<Grid container spacing={3}>
 	      		<Grid item xs={6}>
-	      			<SearchBar placeholder={"search employee"}/>
+	      			<SearchBar placeholder={"search product"}/>
 	      		</Grid>
 	      		<Grid item xs={6}>
 	      			<Link to={props.path+'/add'}>
@@ -118,20 +117,20 @@ const RequestsTableCard=(props)=>{
 		      			  	color={"primary"}
 		      			  	variant="contained"
 		      			>
-		      			  	Add employee
+		      			  	Add product
 		      			</Button>
 		      		</Link>
 	      		</Grid>
 	        	<Grid item xs={12}>
 	          		<Card className={classes.paper}>
-	          			<CardContent className={classes.cardContent} >
+	          			<CardContent className={classes.cardContent}>
 	          				{header}
 					    	<RequestsTable {...props} />
 					    </CardContent>
 					    <CardActions className={classes.actions}>
 					      	<TablePagination
 						        component="div"
-						        count={props.requests ? props.requests.length : 0}
+						        count={props.items ? props.items.length : 0}
 						        onChangePage={handlePageChange}
 						        onChangeRowsPerPage={handleRowsPerPageChange}
 						        page={page}
@@ -152,7 +151,7 @@ RequestsTableCard.propTypes={
 	header:PropTypes.string
 }
 
-const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
+const RequestsTable=({items, showDeleteDialog, path, loading})=>{
 	const classes = useStyles();
 	const [selectedItems, setSelectedItems] = useState([]);
 
@@ -177,7 +176,6 @@ const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
   	};
 
   	const handleSelectAll = event => {
-  		var items=requests;
   	  	let selectedItems;
   	  	if (event.target.checked) {
   	    	selectedItems = items.map(i => i._id);
@@ -187,10 +185,10 @@ const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
   	  	setSelectedItems(selectedItems);
   	};
 
-	if(!requests || loading){
+	if(!items || loading){
 		return(<CircularProgress className={classes.loader} />);
 	}else{
-		const requestRows=requests.map((r,i)=>{
+		const requestRows=items.map((r,i)=>{
 			return(
 				<TableRow key={i}>
 					<TableCell>
@@ -202,9 +200,8 @@ const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
 						/>
 					</TableCell>
 				  	<TableCell>{r.name}</TableCell>
-				  	<TableCell>{r.email}</TableCell>
-				  	<TableCell>{r.address}</TableCell>
-				  	<TableCell>{r.message}</TableCell>
+				  	<TableCell>{r.category.name}</TableCell>
+				  	<TableCell>{r.price}</TableCell>
 				  	<TableCell align="right">
 				  		<Link to={path+'/edit/'+r._id}>
 				  			<Fab color='secondary' size='small' aria-label='Edit'>
@@ -225,19 +222,18 @@ const RequestsTable=({requests, showDeleteDialog, path, loading})=>{
 			      <TableRow>
 			      	<TableCell>
 			      	  	<Checkbox
-				      	    checked={selectedItems.length === requests.length}
+				      	    checked={selectedItems.length === items.length}
 				      	    color={"primary"}
 				      	    indeterminate={
 				      	      selectedItems.length > 0 &&
-				      	      selectedItems.length < requests.length
+				      	      selectedItems.length < items.length
 				      	    }
 				      	    onChange={handleSelectAll}
 			      	  	/>
 			      	</TableCell>
 			        <TableCell>Name</TableCell>
-			        <TableCell>Email</TableCell>
-			        <TableCell>Address</TableCell>
-			        <TableCell>Description</TableCell>
+			        <TableCell>Category</TableCell>
+			        <TableCell>Price</TableCell>
 			        <TableCell align="right">Action</TableCell>
 			      </TableRow>
 			    </TableHead>
@@ -254,17 +250,17 @@ class List extends React.Component{
 		super(props);
 	}
 	componentDidMount(){
-		const {requests, loadRequests}=this.props;
-		if(!(requests && requests.length)){
-			loadRequests();
+		const {items, loadItems, shouldLoadItems}=this.props;
+		if(shouldLoadItems){
+			loadItems();
 		}
 	}
 	render(){
 		console.log('Request List',this.props);
-		const {match, requests, loadingRequests, showDeleteDialog, closeDeleteDialog, deleteDialogOpen, deleteId, header}=this.props;
+		const {match, items, loadingItems, showDeleteDialog, closeDeleteDialog, deleteDialogOpen, deleteId, header}=this.props;
 		return(
 			<React.Fragment>
-				<RequestsTableCard requests={requests} loading={loadingRequests} path={match ? match.path : '/admin/employees'} showDeleteDialog={showDeleteDialog} header={header} />
+				<RequestsTableCard items={items} loading={loadingItems} path={match ? match.path : '/admin/products'} showDeleteDialog={showDeleteDialog} header={header} />
 				<DeleteConfirmationDialog
 				  	id="ringtone-menu"
 				  	deleteId={deleteId}
@@ -284,7 +280,7 @@ List.propTypes={
 }
 
 const mapStateToProps=(state)=>{
-	const s=state.Admin.Request
+	const s=state.Admin.Product;
 	return {
 		...s
 	}
@@ -292,15 +288,15 @@ const mapStateToProps=(state)=>{
 
 const mapDispatchToProps=(dispatch)=>{
 	return {
-		loadRequests:()=>{
+		loadItems:()=>{
 			dispatch({
-				type:LOAD_REQUESTS_REQ
+				type:LOAD_ITEMS_REQ
 			});
-			return fetch('/api/request/get').then((res)=>res.ok?res.json():[]).then((requests)=>{
+			return fetch('/api/product/get').then((res)=>res.ok?res.json():[]).then((items)=>{
 				dispatch({
-					type:LOAD_REQUESTS_RES,
+					type:LOAD_ITEMS_RES,
 					payload:{
-						requests
+						items
 					}
 				});
 			});
@@ -318,7 +314,7 @@ const mapDispatchToProps=(dispatch)=>{
 				var b={
 					id:deleteId
 				}
-				return fetch('/api/request/delete',{
+				return fetch('/api/product/delete',{
 					method:'POST',
 					body:JSON.stringify(b),
 					headers: {
@@ -329,7 +325,7 @@ const mapDispatchToProps=(dispatch)=>{
 					if(json.result && json.result==='success'){
 						dispatch({
 							type:DELETE_RES,
-							payload:{request:json.data}
+							payload:{item:json.data}
 						});
 					}
 				});
@@ -343,4 +339,4 @@ export const ListContainer=connect(
 	mapDispatchToProps
 )(List);
 
-export default withTitle(ListContainer)('Employees');
+export default withTitle(ListContainer)('Products');

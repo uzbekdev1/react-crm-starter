@@ -43,6 +43,10 @@ const userAPI={
 			result:'success',
 			user:req.session.user || {}
 		});
+	},
+	logout:(req,res,next)=>{
+		req.session.user={};
+		res.end();
 	}
 }
 

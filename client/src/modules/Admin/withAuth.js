@@ -5,35 +5,56 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 
 import {SIGN_IN_REQ, SIGN_IN_RES} from './index.js';
 
-export default function withAuth(ComponentToProtect) {
+export default function withAuth(ComponentToProtect, protectedModule='') {
   class ProtectedComponent extends Component {
     constructor(props) {
       super(props);
       this.state = {
         redirect: false,
-        loading:true
+        loading:true,
+        hasAccessRight:true
       };
     }
     componentDidMount() {
       console.log('withAuth mounted');
       this.props.getActiveUser().then((user)=>{
-        console.log('active user', user);
+        var hasAccessRight=true;
+        var redirect=false;
+
+        if(user && user._id){
+          if(protectedModule && !(user.rights.indexOf(protectedModule)>=0)){
+            hasAccessRight=false
+          }
+        }else{
+          redirect=true;
+        }
+
         this.setState({
-          redirect:!user,
-          loading:false
+          redirect,
+          loading:false,
+          hasAccessRight
         });
+
+        // checking access right of a user for protected component
       });
     }
     render() {
-      console.log('withAuth',this.props);
-      const {redirect, loading} = this.state;
+      console.log('withAuth',protectedModule);
+      const {redirect, loading, hasAccessRight} = this.state;
       const props=this.props;
 
       if(loading){
         return <LinearProgress />;
       }
 
+      if(!hasAccessRight){
+        console.log('has no access right',props.user.rights);
+        console.log(props.user.rights.indexOf(protectedModule));
+        props.history.goBack();
+      }
+
       if (!props.user.loggedIn && redirect) {
+        window.localStorage.setItem('lastVisitedPath',this.props.location.pathname);
         console.log('redirecting', props.match.path+"/login");
         return <Redirect to={'/admin/login'} />;
       }

@@ -1,13 +1,11 @@
-// ******        This module is being used as Employee  ******
-
 import Router from './Router';
 import {defineModule} from '../../functions';
 
-const actionPrefix='Admin/Request/';
-export const LOAD_REQUESTS_REQ=actionPrefix+'LoadRequestsReq';
-export const LOAD_REQUESTS_RES=actionPrefix+'LoadRequestsRes';
-export const LOAD_REQUEST_REQ=actionPrefix+'LoadRequestReq';
-export const LOAD_REQUEST_RES=actionPrefix+'LoadRequestRes';
+const actionPrefix='Admin/Product/';
+export const LOAD_ITEMS_REQ=actionPrefix+'LoadItemsReq';
+export const LOAD_ITEMS_RES=actionPrefix+'LoadItemsRes';
+export const LOAD_ITEM_REQ=actionPrefix+'LoadItemReq';
+export const LOAD_ITEM_RES=actionPrefix+'LoadItemRes';
 export const SAVE_REQ=actionPrefix+'SaveReq';
 export const SAVE_RES=actionPrefix+'SaveRes';
 export const SHOW_DELETE_DIALOG=actionPrefix+'ShowDeleteDialog';
@@ -15,10 +13,11 @@ export const CLOSE_DELETE_DIALOG=actionPrefix+'CloseDeleteDialog';
 export const DELETE_RES=actionPrefix+'DeleteRes';
 
 const defaultState={
-	requests:[],
-	loadingRequests:false,
-	request:{},
-	loadingRequest:false,
+	items:[],
+	loadingItems:false,
+	shouldLoadItems:true,
+	item:{},
+	loadingItem:false,
 	deleteDialogOpen:false,
 	deleteId:'',
 	saving:false
@@ -26,28 +25,29 @@ const defaultState={
 
 export const reducer=(state=defaultState, action)=>{
 	switch(action.type){
-		case LOAD_REQUEST_REQ:
+		case LOAD_ITEM_REQ:
 			return {
 				...state,
-				loadingRequest:true
+				loadingItem:true
 			}
-		case LOAD_REQUEST_RES:
-			var request=action.payload.request;
+		case LOAD_ITEM_RES:
+			var item=action.payload.item;
 			return {
 				...state,
-				request,
-				loadingRequest:false
+				item,
+				loadingItem:false
 			}
-		case LOAD_REQUESTS_REQ:
+		case LOAD_ITEMS_REQ:
 			return {
 				...state,
-				loadingRequests:true
+				loadingItems:true
 			}
-		case LOAD_REQUESTS_RES:
+		case LOAD_ITEMS_RES:
 			return {
 				...state,
-				loadingRequests:false,
-				requests:action.payload.requests
+				loadingItems:false,
+				shouldLoadItems:false,
+				items:action.payload.items
 			}
 		case SAVE_REQ:
 			return {
@@ -55,22 +55,22 @@ export const reducer=(state=defaultState, action)=>{
 				saving:true
 			}
 		case SAVE_RES:
-			var request=action.payload.request;
+			var item=action.payload.item;
 			var match=false;
-			var requests=state.requests.map((r,i)=>{
-				if(r && r._id === request._id){
+			var items=state.items.map((r,i)=>{
+				if(r && r._id === item._id){
 					match=true;
-					return request;
+					return item;
 				}else{
 					return r;
 				}
 			});
 			if(!match){
-				requests.push(request);
+				items.push(item);
 			}
 			return {
 				...state,
-				requests,
+				items,
 				saving:false
 			}
 		case SHOW_DELETE_DIALOG:
@@ -85,14 +85,14 @@ export const reducer=(state=defaultState, action)=>{
 				deleteDialogOpen:false
 			}
 		case DELETE_RES:
-			var request=action.payload.request;
+			var item=action.payload.item;
 			return {
 				...state,
-				requests:state.requests.filter((r)=>r._id !== request._id)
+				items:state.items.filter((r)=>r._id !== item._id)
 			}
 		default:
 			return state;
 	}
 }
 
-export default defineModule('Employees','/employees', Router, reducer);
+export default defineModule('Products','/products', Router, reducer);

@@ -23,13 +23,15 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import DashboardIcon from '@material-ui/icons/Dashboard';
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 import PeopleIcon from '@material-ui/icons/People';
 import BarChartIcon from '@material-ui/icons/BarChart';
-import LayersIcon from '@material-ui/icons/Layers';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import HomeIcon from '@material-ui/icons/Home';
+import {
+  Layers as LayersIcon,
+  ExitToApp as LogOutIcon
+} from '@material-ui/icons';
+
+import {LOG_OUT} from './index';
 
 function Copyright() {
   return(
@@ -125,33 +127,27 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const MainListItems = ({linkPrefix})=>{
+export const MainListItems = ({items, accessRights})=>{
+  items=items.map((menuItem, i)=>{
+    if((accessRights && accessRights.length && accessRights.indexOf(menuItem.accessRightTitle)>=0) || !menuItem.accessRightTitle){
+      let Icon=menuItem.icon;
+      return(
+        <ListItem button>
+          <ListItemIcon>
+            <Icon />
+          </ListItemIcon>
+          <Link to={menuItem.link}>
+            <ListItemText primary={menuItem.text} />
+          </Link>
+        </ListItem>
+      )
+    }else{
+      return
+    }
+  });
   return(
     <div>
-      <ListItem button>
-        <ListItemIcon>
-          <HomeIcon />
-        </ListItemIcon>
-        <Link to={'/'}>
-          <ListItemText primary="Home" />
-        </Link>
-      </ListItem>
-      <ListItem button>
-        <ListItemIcon>
-          <DashboardIcon />
-        </ListItemIcon>
-        <Link to={linkPrefix+''}>
-          <ListItemText primary="Dashboard" />
-        </Link>
-      </ListItem>
-      <ListItem button>
-        <ListItemIcon>
-          <AssignmentIcon />
-        </ListItemIcon>
-        <Link to={linkPrefix+'/request'} >
-          <ListItemText primary="Employees" />
-        </Link>
-      </ListItem>
+      {items}
     </div>
   );
 }
@@ -166,8 +162,6 @@ function AdminLayout(props) {
     setOpen(false);
   };
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-
-  console.log('Layout',props);
 
   return (
     <div className={classes.root}>
@@ -191,6 +185,9 @@ function AdminLayout(props) {
               <NotificationsIcon />
             </Badge>
           </IconButton>
+          <IconButton color="inherit" title="Log out" onClick={(e)=>{props.logOut().then(()=>{props.history.goBack()})}}>
+              <LogOutIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -207,7 +204,7 @@ function AdminLayout(props) {
         </div>
         <Divider />
         <List>
-          <MainListItems linkPrefix={props.match.path} />
+          <MainListItems items={props.menuItems} accessRights={props.rights}/>
         </List>
       </Drawer>
       <main className={classes.content}>
@@ -224,13 +221,27 @@ function AdminLayout(props) {
 // }
 
 const mapStateToProps=(state)=>{
-	return {title:state.Admin.title};
+	return {
+    title:state.Admin.title,
+    menuItems:state.Admin.menuItems,
+    rights:state.Admin.user.rights
+  };
 }
 
 const mapDispatchToProps=(dispatch)=>{
-	return {}
+	return {
+    logOut:()=>{
+      dispatch({
+        type:LOG_OUT
+      });
+      return fetch('/api/user/logout').then((res)=>{
+        console.log('logged out');
+        return '';
+      });
+    }
+  }
 }
 
-const LayoutContainer=connect(mapStateToProps)(AdminLayout);
+const LayoutContainer=connect(mapStateToProps, mapDispatchToProps)(AdminLayout);
 
 export default LayoutContainer;

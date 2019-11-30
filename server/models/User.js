@@ -15,7 +15,13 @@ var UserSchema=new mongoose.Schema({
 	},
 	password:{
 		type:String
-	}
+	},
+	role:{   // might be: 'admin' || 'org'
+		type:String
+	},
+	rights:[{  // list of names of modules, accessible for the user
+		type:String
+	}]
 });
 
 module.exports=mongoose.model('User',UserSchema);

@@ -74,8 +74,9 @@ class Login extends React.Component{
 		const {email,password}=this.state;
 
 		if(user && user.loggedIn){
+			let redirectUrl=window.localStorage.getItem('lastVisitedPath');
 			return(
-				<Redirect to={'/admin'} />
+				<Redirect to={redirectUrl ? redirectUrl : '/admin'} />
 			);
 		}
 

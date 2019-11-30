@@ -18,7 +18,7 @@ class Admin extends React.Component{
 	    if(props.location.pathname!==(props.match.path+'/login')){
     		const routes=props.routes.map((route,index) => {
     			return(
-    	        	<Route exact={route.path===props.match.path+'/'} path={route.path} key={route.path} component={withAuth(route.component)} title={route.title} />
+    	        	<Route exact={route.path===props.match.path+'/'} path={route.path} key={route.path} component={withAuth(route.component, route.title)} title={route.title} />
     	        );
     	    });
 

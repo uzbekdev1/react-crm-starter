@@ -12,4 +12,4 @@ export const reducer=(state={name:'DEFAULT'}, action)=>{
 	}
 }
 
-export default defineModule('Дешбоард','/', Dashboard, reducer);
+export default defineModule('Dashboard','/', Dashboard, reducer);
