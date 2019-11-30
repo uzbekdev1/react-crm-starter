@@ -16,6 +16,10 @@ var RequestSchema=new mongoose.Schema({
 	},
 	address:{
 		type:String
+	},
+	userId:{
+		type:Types.ObjectId,
+		ref:'User'
 	}
 });
 
