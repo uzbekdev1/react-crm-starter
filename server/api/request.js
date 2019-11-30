@@ -12,7 +12,7 @@ const requestAPI={
 				}
 			});
 		}else{
-			Request.find({},(err,requests)=>{
+			Request.find({userId:req.session.user._id},(err,requests)=>{
 				if(err) return next(err);
 				if(requests && requests.length){
 					res.json(requests);
@@ -31,6 +31,7 @@ const requestAPI={
 				request.email=b.email;
 				request.address=b.address;
 				request.message=b.message;
+				request.userId=req.session.user._id;
 
 				request.save(function(err,result){
 					if(err) return next(err);
@@ -46,6 +47,7 @@ const requestAPI={
 			request.email=b.email;
 			request.address=b.address;
 			request.message=b.message;
+			request.userId=req.session.user._id;
 
 			request.save(function(err,result){
 				if(err) return next(err);
